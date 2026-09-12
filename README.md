@@ -29,8 +29,9 @@ Para comprobar la lista de productos, consulta un cliente que ya tenga items.
 La consulta manual reutiliza `src/pages/Cart.tsx`, `src/api/ms3.ts`, los tipos
 compartidos y `PriceTag`. Conserva el componente de carrito de sesión existente
 y no cambia su contexto ni el checkout. La consulta manual no modifica el
-carrito de sesión. `App.tsx` conecta `/carrito` con React Router y conserva Home
-como vista para las demás URL, igual que antes. Los estilos nuevos están
+carrito de sesión. `main.tsx` monta un único BrowserRouter y `App.tsx` conecta
+`/carrito`, `/`, `/categoria/:categoryId`, `/analitica` y la página NotFound
+para las URL desconocidas. Los estilos nuevos están
 limitados a este módulo con CSS Modules.
 
 Validación: `npm run build` y `npx tsc -p tsconfig.app.json --strict --noEmit`.
