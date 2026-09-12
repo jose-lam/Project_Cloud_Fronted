@@ -1,0 +1,24 @@
+import axios, { type AxiosInstance } from "axios";
+
+// Cada microservicio tiene su propia URL base, configurable por variables de
+// entorno (ver .env.example). En producción deberían apuntar al AWS API
+// Gateway (HTTPS) que expone cada uno públicamente.
+const MS1_URL = import.meta.env.VITE_MS1_URL || "http://localhost:8000";
+const MS3_URL = import.meta.env.VITE_MS3_URL || "http://localhost:8083";
+const MS5_URL = import.meta.env.VITE_MS5_URL || "http://localhost:8080";
+
+function makeClient(baseURL: string): AxiosInstance {
+  const instance = axios.create({ baseURL, timeout: 15000 });
+  return instance;
+}
+
+export const ms1Client = makeClient(MS1_URL);
+export const ms3Client = makeClient(MS3_URL);
+export const ms5Client = makeClient(MS5_URL);
+
+// El MS2 (Clientes / Pedidos / Pago) todavía no ha sido implementado por el
+// equipo. Mientras tanto USE_MOCK_MS2 controla si el front usa el servicio
+// simulado (src/api/ms2.mock.js) o intenta llamar a una API real en
+// VITE_MS2_URL. Ver README para más detalle.
+export const USE_MOCK_MS2 = (import.meta.env.VITE_USE_MOCK_MS2 ?? "true") !== "false";
+export const ms2Client = makeClient(import.meta.env.VITE_MS2_URL || "http://localhost:8001");

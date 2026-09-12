@@ -1,0 +1,215 @@
+// ============================================================================
+// Tipos compartidos del dominio (MS1, MS2 mock, MS3, MS5)
+// ============================================================================
+
+/** MS1 — Categoría de catálogo */
+export interface Category {
+  category_id: number;
+  name: string;
+  [key: string]: unknown;
+}
+
+/** MS1 — Producto de catálogo */
+export interface Product {
+  product_id: number;
+  name: string;
+  price: number;
+  image_url?: string | null;
+  product_url?: string | null;
+  stars?: number;
+  reviews?: number;
+  category?: Category | null;
+  [key: string]: unknown;
+}
+
+/** Envoltura de paginación usada por varios endpoints del MS1 */
+export interface PaginatedResult<T> {
+  total: number;
+  page: number;
+  limit: number;
+  total_pages: number;
+  data: T[];
+}
+
+export interface PaginationParams {
+  page?: number;
+  limit?: number;
+}
+
+/** MS1 — Respuesta de disponibilidad de stock */
+export interface StockInfo {
+  product_id: number;
+  client_id: number;
+  client_country: string;
+  available_stock: number;
+}
+
+/** MS1 — Almacén */
+export interface Warehouse {
+  warehouse_id: number;
+  name: string;
+  [key: string]: unknown;
+}
+
+// ----------------------------------------------------------------------------
+// MS2 (mock) — Clientes / Pedidos / Pago
+// ----------------------------------------------------------------------------
+
+export interface Cliente {
+  id: number | string;
+  nombre: string;
+  email: string;
+  direccion?: string;
+  telefono?: string;
+  creado_en?: string;
+}
+
+/** Registro interno del mock, incluye password; nunca se expone tal cual */
+export interface ClienteConPassword extends Cliente {
+  password: string;
+}
+
+export interface RegistrarClientePayload {
+  nombre: string;
+  email: string;
+  password: string;
+  direccion?: string;
+  telefono?: string;
+}
+
+export interface IniciarSesionPayload {
+  email: string;
+  password: string;
+}
+
+export interface Pedido {
+  id: number;
+  cliente_id: number | string;
+  fecha_pedido: string;
+  estado: string;
+  sub_total: number;
+  impuestos: number;
+  total: number;
+}
+
+export interface DetallePedido {
+  id: number;
+  pedido_id: number;
+  producto_id: number | string;
+  nombre_producto: string;
+  precio_unitario: number;
+  cantidad: number;
+  sub_total: number;
+}
+
+export interface Pago {
+  id: number;
+  pedido_id: number;
+  metodo_pago: string;
+  monto: number;
+  estado_pago: string;
+  fecha_pago: string;
+}
+
+export interface PedidoConDetalle {
+  pedido: Pedido;
+  detalle: DetallePedido[];
+  pago: Pago | null;
+}
+
+export interface ItemParaPedido {
+  idProducto: number | string;
+  nombre: string;
+  precioUnitario: number;
+  cantidad: number;
+}
+
+export interface CrearPedidoPayload {
+  clienteId: number | string;
+  items: ItemParaPedido[];
+  metodoPago: string;
+}
+
+// ----------------------------------------------------------------------------
+// MS3 — Carrito de compras
+// ----------------------------------------------------------------------------
+
+export interface CartItem {
+  idProducto?: number | string;
+  id_producto?: number | string;
+  nombre: string;
+  precioUnitario: number;
+  precio_unitario?: number;
+  urlImagen?: string;
+  url_imagen?: string;
+  urlProducto?: string;
+  url_producto?: string;
+  cantidad: number;
+}
+
+export interface Carrito {
+  id: string;
+  idCliente?: string;
+  idAlmacen?: string | null;
+  moneda?: string;
+  estado?: "ACTIVO" | "ABANDONADO" | "COMPLETADO" | string;
+  items: CartItem[];
+  [key: string]: unknown;
+}
+
+export interface NuevoCarritoPayload {
+  idCliente: string;
+  idAlmacen?: string | null;
+  moneda?: string;
+}
+
+// ----------------------------------------------------------------------------
+// MS5 — Analítica (Athena)
+// ----------------------------------------------------------------------------
+
+export interface ProductoMenosStockRow {
+  nombre: string;
+  stock_disponible: number;
+  [key: string]: unknown;
+}
+
+export interface ProductoPorCategoriaRow {
+  categoria: string;
+  producto?: string;
+  [key: string]: unknown;
+}
+
+export interface ProductoResenaRow {
+  producto: string;
+  stars: number;
+  reviews: number;
+  [key: string]: unknown;
+}
+
+export interface PedidoPorFechaRow {
+  fecha_pedido: string;
+  estado: string;
+  total_pedidos: number;
+  [key: string]: unknown;
+}
+
+export interface ClienteFrecuenteRow {
+  email: string;
+  total_pedidos: number;
+  [key: string]: unknown;
+}
+
+export interface ProductoPedidoRow {
+  producto_id: number | string;
+  nombre_producto: string;
+  total_pedido: number;
+  [key: string]: unknown;
+}
+
+export interface CarritoAbiertoRow {
+  total_carritos_abiertos: number;
+  [key: string]: unknown;
+}
+
+/** Fila genérica usada por DataTable/BarList cuando la forma no se tipa en detalle */
+export type AnalyticsRow = Record<string, unknown>;

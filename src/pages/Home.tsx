@@ -1,32 +1,75 @@
-import React from 'react';
+import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
+import { getCategories } from "../api/ms1";
+import CategoryRow from "../components/CategoryRow";
+import type { Category } from "../types";
 
-interface Service {
-  id: string;
-  name: string;
-  status: string;
-}
+export default function Home() {
+  const [categories, setCategories] = useState<Category[] | null>(null);
+  const [error, setError] = useState(false);
 
-export const Home = (): React.JSX.Element => {
-  const services: Service[] = [
-    { id: 'ms1', name: 'MS1 - Transaccional SQL 1', status: 'Pendiente Integración' },
-    { id: 'ms2', name: 'MS2 - Transaccional SQL 2', status: 'Pendiente Integración' },
-    { id: 'ms3', name: 'MS3 - Transaccional NoSQL', status: 'Pendiente Integración' },
-    { id: 'ms4', name: 'MS4 - Orquestador', status: 'Pendiente Integración' },
-    { id: 'ms5', name: 'MS5 - Dashboard Analítico (Athena)', status: 'Pendiente Integración' },
-  ];
+  useEffect(() => {
+    getCategories()
+      .then(setCategories)
+      .catch(() => setError(true));
+  }, []);
 
   return (
     <>
-      <h2>Panel de Control del Sistema</h2>
-      <p>Estado de los microservicios conectados a través de AWS API Gateway:</p>
+      <section className="hero">
+        <div className="container hero-inner">
+          <div>
+            <p className="hero-eyebrow">Marketplace multicategoría</p>
+            <h1>Todo lo que buscas, cruzando la nube en segundos.</h1>
+            <p>
+              Catálogo, carrito y analítica corriendo sobre cinco microservicios independientes:
+              así de rápido se mueve Qhapaq.
+            </p>
+            <div className="hero-cta">
+              <Link to="/categoria/1" className="btn btn-primary">
+                Explorar catálogo
+              </Link>
+              <Link to="/analitica" className="btn btn-outline" style={{ color: "#fff", borderColor: "#5c4f95" }}>
+                Ver panel analítico
+              </Link>
+            </div>
+          </div>
+          <div className="hero-art" aria-hidden="true">
+            <div style={{ background: "#3d3270" }} />
+            <div style={{ background: "#e3a33b" }} />
+            <div style={{ background: "#1f6f6b" }} />
+            <div style={{ background: "#4a3e82" }} />
+          </div>
+        </div>
+      </section>
 
-      <ul>
-        {services.map((service) => (
-          <li key={service.id}>
-            <strong>{service.name}</strong> - {service.status}
-          </li>
+      <div className="container">
+        {error && (
+          <div className="state-msg">
+            <h3>No pudimos cargar el catálogo</h3>
+            <p>Verifica que el MS1 esté activo y que VITE_MS1_URL apunte a la URL correcta.</p>
+          </div>
+        )}
+        {!error && !categories && (
+          <div style={{ padding: "50px 0" }}>
+            <div className="skeleton" style={{ height: 22, width: 180, marginBottom: 18 }} />
+            <div style={{ display: "flex", gap: 16 }}>
+              {Array.from({ length: 5 }).map((_, i) => (
+                <div key={i} className="skeleton" style={{ width: 200, height: 260 }} />
+              ))}
+            </div>
+          </div>
+        )}
+        {categories?.length === 0 && (
+          <div className="state-msg">
+            <h3>Todavía no hay categorías</h3>
+            <p>Carga categorías desde el MS1 para que aparezcan aquí.</p>
+          </div>
+        )}
+        {categories?.map((cat) => (
+          <CategoryRow key={cat.category_id} category={cat} />
         ))}
-      </ul>
+      </div>
     </>
   );
-};
+}
