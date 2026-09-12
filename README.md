@@ -1,5 +1,58 @@
 # React + TypeScript + Vite
 
+## Carrito MS3
+
+En `.env`, agrega la siguiente variable sin reemplazar las de otros servicios
+(también está documentada en `.env.example`):
+
+```dotenv
+VITE_MS3_API_URL=https://okj8uulv98.execute-api.us-east-1.amazonaws.com/api/carritos
+```
+
+MS3 usa esta URL completa en lugar de la antigua `VITE_MS3_URL`. Reinicia Vite
+después de modificar `.env`; las variables Vite se incorporan durante el build.
+
+```bash
+npm ci
+npm run dev
+```
+
+Abre `http://localhost:5173/carrito` (o el puerto que indique Vite). Ingresa un
+ID, por ejemplo `CLI001`, y pulsa **Crear carrito** para enviar
+`POST {VITE_MS3_API_URL}` con `{ "idCliente": "CLI001" }`. Pulsa
+**Consultar carrito** para enviar `GET {VITE_MS3_API_URL}/cliente/CLI001`.
+Crear de nuevo un carrito activo debe mostrar el mensaje 400 de MS3; consultar
+un cliente sin carrito debe mostrar «No se encontró un carrito activo para este
+cliente». Un resultado vacío muestra «El carrito está vacío» y su resumen.
+Para comprobar la lista de productos, consulta un cliente que ya tenga items.
+
+La consulta manual reutiliza `src/pages/Cart.tsx`, `src/api/ms3.ts`, los tipos
+compartidos y `PriceTag`. Conserva el componente de carrito de sesión existente
+y no cambia su contexto ni el checkout. La consulta manual no modifica el
+carrito de sesión. `App.tsx` conecta `/carrito` con React Router y conserva Home
+como vista para las demás URL, igual que antes. Los estilos nuevos están
+limitados a este módulo con CSS Modules.
+
+Validación: `npm run build` y `npx tsc -p tsconfig.app.json --strict --noEmit`.
+
+### API Gateway y CORS
+
+El 12/09/2026, el GET real para `CLI001` devolvió 404 JSON, pero sin
+`Access-Control-Allow-Origin`. El preflight OPTIONS para POST con origen
+`http://localhost:5173` y cabecera `content-type` devolvió 403
+`Invalid CORS request`. Esto impide completar las llamadas desde ese origen en
+el navegador. CORS debe habilitarse en API Gateway/backend para el origen del
+frontend, los métodos GET/POST y la cabecera Content-Type, incluyendo las
+respuestas de error. También debe autorizarse el origen HTTPS del despliegue.
+No se agregaron proxies ni cambios de API Gateway o Amplify.
+
+El cliente se verificó con respuestas simuladas 200/201, 400, 404, 403, 500/502,
+errores no JSON, red y timeout. No se creó un carrito real durante la validación;
+la prueba completa desde navegador queda pendiente de habilitar CORS.
+
+El flujo es React → API Gateway HTTPS → MS3 → MongoDB. El módulo no llama a MS1
+ni incluye credenciales o conexiones de MongoDB.
+
 This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
 
 Currently, two official plugins are available:

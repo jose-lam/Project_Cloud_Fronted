@@ -2,8 +2,108 @@ import { Link, useNavigate } from "react-router-dom";
 import { useCart } from "../context/CartContext";
 import { useAuth } from "../context/AuthContext";
 import PriceTag, { formatPEN } from "../components/PriceTag";
+import { useRef, useState } from "react";
+import { crearCarrito, mensajeErrorCarrito, obtenerCarritoActivo } from "../api/ms3";
+import type { Carrito } from "../types";
+import styles from "./Cart.module.css";
 
 const IGV = 0.18;
+
+// Consulta manual independiente del carrito de sesión y del checkout existentes.
+export function CarritoConsulta() {
+  const [idCliente, setIdCliente] = useState("CLI001");
+  const [carrito, setCarrito] = useState<Carrito | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const pending = useRef(false);
+
+  async function solicitar(accion: "consultar" | "crear") {
+    if (pending.current) return;
+    const clienteId = idCliente.trim();
+    setCarrito(null);
+    setError(null);
+    if (!clienteId) {
+      setError("Ingresa el ID del cliente.");
+      return;
+    }
+    pending.current = true;
+    setLoading(true);
+    try {
+      setCarrito(await (accion === "crear" ? crearCarrito(clienteId) : obtenerCarritoActivo(clienteId)));
+    } catch (err: unknown) {
+      setError(mensajeErrorCarrito(err));
+    } finally {
+      pending.current = false;
+      setLoading(false);
+    }
+  }
+
+  return (
+    <section className={`container ${styles.consulta}`} aria-labelledby="carrito-titulo">
+      <div className="page-heading">
+        <h1 id="carrito-titulo">Carrito de compras</h1>
+        <p>Consulta o crea el carrito activo de un cliente.</p>
+      </div>
+      <form className={`card ${styles.form}`} onSubmit={(event) => {
+        event.preventDefault();
+        void solicitar("consultar");
+      }}>
+        <div className="field">
+          <label htmlFor="carrito-cliente">ID del cliente</label>
+          <input id="carrito-cliente" name="idCliente" value={idCliente} disabled={loading}
+            required placeholder="CLI001" onChange={(event) => {
+              setIdCliente(event.target.value);
+              setCarrito(null);
+              setError(null);
+            }} />
+        </div>
+        <div className={styles.actions}>
+          <button className="btn btn-primary" type="submit" disabled={loading}>Consultar carrito</button>
+          <button className="btn btn-outline" type="button" disabled={loading}
+            onClick={() => void solicitar("crear")}>Crear carrito</button>
+        </div>
+      </form>
+
+      {loading && <p role="status">Cargando carrito…</p>}
+      {error && <div className={`state-msg ${styles.message}`} role="alert">{error}</div>}
+
+      {carrito && !loading && (
+        <div className="page-body" aria-live="polite">
+          <h2>Carrito encontrado</h2>
+          <p>ID del cliente: <strong>{carrito.idCliente}</strong></p>
+          <p>Estado: <strong>{carrito.estado}</strong></p>
+          <div className={`cart-layout ${styles.result}`}>
+            <div className="cart-items">
+              {carrito.items.length === 0 ? <p className="state-msg">El carrito está vacío.</p> : (
+                <ul className={styles.items}>
+                  {carrito.items.map((item) => (
+                    <li className={`cart-item ${styles.item}`} key={item.idProducto ?? item.id_producto}>
+                      {(item.urlImagen || item.url_imagen) && (
+                        <img src={item.urlImagen || item.url_imagen} alt={item.nombre} loading="lazy" />
+                      )}
+                      <div>
+                        <h3 className="cart-item-name">{item.nombre}</h3>
+                        <p>Precio unitario: <PriceTag amount={item.precioUnitario} size="sm" /></p>
+                        <p>Cantidad: {item.cantidad}</p>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+            <aside className={`cart-summary ${styles.summary}`} aria-label="Resumen del carrito">
+              <h3>Resumen del carrito</h3>
+              <p>Total de artículos: <strong>{carrito.resumen.totalArticulos}</strong></p>
+              <p>Subtotal: <strong>S/ {formatPEN(carrito.resumen.subtotal)}</strong></p>
+              <p>Moneda: <strong>{carrito.resumen.moneda}</strong></p>
+            </aside>
+          </div>
+        </div>
+      )}
+      <Link to="/">Volver al inicio</Link>
+    </section>
+  );
+}
 
 export default function Cart() {
   const { items, subtotal, loading, error, updateQty, removeItem, clearCart } = useCart();

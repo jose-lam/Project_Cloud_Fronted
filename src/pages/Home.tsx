@@ -26,6 +26,9 @@ export default function Home() {
               así de rápido se mueve Qhapaq.
             </p>
             <div className="hero-cta">
+              <Link to="/carrito" className="btn btn-primary">
+                Ir al carrito
+              </Link>
               <Link to="/categoria/1" className="btn btn-primary">
                 Explorar catálogo
               </Link>
