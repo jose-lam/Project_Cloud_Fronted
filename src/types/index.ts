@@ -145,15 +145,25 @@ export interface CartItem {
   urlProducto?: string;
   url_producto?: string;
   cantidad: number;
+  fechaAgregado?: string;
+}
+
+export interface ResumenCarrito {
+  totalArticulos: number;
+  subtotal: number;
+  moneda: string;
 }
 
 export interface Carrito {
   id: string;
-  idCliente?: string;
+  idCliente: string;
   idAlmacen?: string | null;
   moneda?: string;
-  estado?: "ACTIVO" | "ABANDONADO" | "COMPLETADO" | string;
+  estado: "ACTIVO" | "ABANDONADO" | "COMPLETADO";
   items: CartItem[];
+  resumen: ResumenCarrito;
+  fechaCreacion?: string;
+  fechaActualizacion?: string;
   [key: string]: unknown;
 }
 

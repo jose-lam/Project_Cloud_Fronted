@@ -4,7 +4,7 @@ import axios, { type AxiosInstance } from "axios";
 // entorno (ver .env.example). En producción deberían apuntar al AWS API
 // Gateway (HTTPS) que expone cada uno públicamente.
 const MS1_URL = import.meta.env.VITE_MS1_URL || "http://localhost:8000";
-const MS3_URL = import.meta.env.VITE_MS3_URL || "http://localhost:8083";
+const MS3_URL = import.meta.env.VITE_MS3_API_URL?.trim().replace(/\/+$/, "");
 const MS5_URL = import.meta.env.VITE_MS5_URL || "http://localhost:8080";
 
 function makeClient(baseURL: string): AxiosInstance {
@@ -13,7 +13,13 @@ function makeClient(baseURL: string): AxiosInstance {
 }
 
 export const ms1Client = makeClient(MS1_URL);
-export const ms3Client = makeClient(MS3_URL);
+export const ms3Client = makeClient(MS3_URL ?? "");
+ms3Client.interceptors.request.use((config) => {
+  if (!MS3_URL) {
+    throw new Error("Configura VITE_MS3_API_URL en .env y reinicia el frontend.");
+  }
+  return config;
+});
 export const ms5Client = makeClient(MS5_URL);
 
 // El MS2 (Clientes / Pedidos / Pago) todavía no ha sido implementado por el
