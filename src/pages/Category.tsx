@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import { getCategories, getProductsByCategory } from "../api/ms1";
+import { getPopulatedCategories } from "../lib/populatedCategories";
 import ProductCard from "../components/ProductCard";
 import type { Category as CategoryType, PaginatedResult, Product } from "../types";
 
@@ -10,6 +11,7 @@ export default function Category() {
   const [result, setResult] = useState<PaginatedResult<Product> | null>(null);
   const [page, setPage] = useState(1);
   const [error, setError] = useState<string | null>(null);
+  const [suggestions, setSuggestions] = useState<CategoryType[]>([]);
 
   useEffect(() => {
     setPage(1);
@@ -31,6 +33,13 @@ export default function Category() {
       .catch(() => setError("No se pudo cargar esta categoría desde el MS1."));
     window.scrollTo({ top: 0, behavior: "smooth" });
   }, [categoryId, page]);
+
+  useEffect(() => {
+    if (!categoryId) return;
+    getPopulatedCategories()
+      .then((cats) => setSuggestions(cats.filter((c) => String(c.category_id) !== categoryId).slice(0, 6)))
+      .catch(() => setSuggestions([]));
+  }, [categoryId]);
 
   return (
     <div className="container">
@@ -58,6 +67,16 @@ export default function Category() {
         {result?.data.length === 0 && (
           <div className="state-msg">
             <h3>No hay productos en esta categoría todavía</h3>
+            <p>El MS1 todavía no tiene productos vinculados a esta categoría en su base de datos.</p>
+            {suggestions.length > 0 && (
+              <div style={{ display: "flex", gap: 10, justifyContent: "center", flexWrap: "wrap", marginTop: 18 }}>
+                {suggestions.map((c) => (
+                  <Link key={c.category_id} to={`/categoria/${c.category_id}`} className="btn btn-outline btn-sm">
+                    {c.name}
+                  </Link>
+                ))}
+              </div>
+            )}
           </div>
         )}
 
