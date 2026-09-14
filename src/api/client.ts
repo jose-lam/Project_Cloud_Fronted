@@ -4,7 +4,7 @@ import axios, { type AxiosInstance } from "axios";
 // entorno (ver .env.example). En producción deberían apuntar al AWS API
 // Gateway (HTTPS) que expone cada uno públicamente.
 const MS1_URL = import.meta.env.VITE_MS1_URL || "http://localhost:8000";
-const MS3_URL = import.meta.env.VITE_MS3_API_URL?.trim().replace(/\/+$/, "");
+const MS3_URL = import.meta.env.VITE_MS3_API_URL || "http://localhost:8000";
 const MS5_URL = import.meta.env.VITE_MS5_URL || "http://localhost:8080";
 
 function makeClient(baseURL: string): AxiosInstance {
@@ -26,5 +26,5 @@ export const ms5Client = makeClient(MS5_URL);
 // equipo. Mientras tanto USE_MOCK_MS2 controla si el front usa el servicio
 // simulado (src/api/ms2.mock.js) o intenta llamar a una API real en
 // VITE_MS2_URL. Ver README para más detalle.
-export const USE_MOCK_MS2 = (import.meta.env.VITE_USE_MOCK_MS2 ?? "true") !== "false";
+export const USE_MOCK_MS2 = false;
 export const ms2Client = makeClient(import.meta.env.VITE_MS2_URL || "http://localhost:8001");
